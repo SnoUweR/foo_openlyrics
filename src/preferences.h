@@ -126,12 +126,14 @@ namespace preferences
     {
         AutoSaveStrategy autosave_strategy();
         GUID save_source();
+        GUID save_source_for_non_library();
 
         std::string filename(metadb_handle_ptr track, const metadb_v2_rec_t& track_info);
 
         std::string_view untimed_tag();
         std::string_view timestamped_tag();
 
+        bool use_different_save_method_for_non_library();
         bool merge_equivalent_lrc_lines();
 
         namespace raw

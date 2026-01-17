@@ -71,7 +71,18 @@ bool io::save_lyrics(metadb_handle_ptr track,
     //       only happen on the main thread.
     core_api::ensure_main_thread();
 
-    LyricSourceBase* source = LyricSourceBase::get(preferences::saving::save_source());
+    GUID source_guid;
+    if (preferences::saving::use_different_save_method_for_non_library && !track_is_in_library(track))
+    {
+        LOG_INFO("Using non-library save source for track not in library");
+        source_guid = preferences::saving::save_source_for_non_library();
+    }
+    else
+    {
+        source_guid = preferences::saving::save_source();
+    }
+
+    LyricSourceBase* source = LyricSourceBase::get(source_guid);
     if(source == nullptr)
     {
         LOG_WARN("Failed to load configured save source");

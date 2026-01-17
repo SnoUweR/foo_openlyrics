@@ -239,6 +239,14 @@ std::optional<int> track_duration_in_seconds(const metadb_v2_rec_t& track)
     return {};
 }
 
+bool track_is_in_library(metadb_handle_ptr track)
+{
+#if FOOBAR2000_TARGET_VERSION < 81
+    core_api::ensure_main_thread();
+#endif
+    return library_manager::get()->is_item_in_library(track);
+}
+
 bool track_is_remote(metadb_handle_ptr track)
 {
 #if FOOBAR2000_TARGET_VERSION >= 81

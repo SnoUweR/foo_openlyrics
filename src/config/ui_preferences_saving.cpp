@@ -15,6 +15,8 @@ static const GUID GUID_PREFERENCES_PAGE_SAVING = { 0xd5a7534, 0x9f59, 0x444c, { 
 
 static const GUID GUID_CFG_SAVE_ENABLE_AUTOSAVE = { 0xf25be2d9, 0x4442, 0x4602, { 0xa0, 0xf1, 0x81, 0xd, 0x8e, 0xab, 0x6a, 0x2 } };
 static const GUID GUID_CFG_SAVE_METHOD = { 0xdf39b51c, 0xec55, 0x41aa, { 0x93, 0xd3, 0x32, 0xb6, 0xc0, 0x5d, 0x4f, 0xcc } };
+static const GUID GUID_CFG_SAVE_USE_DIFFERENT_SAVE_METHOD_FOR_NON_LIBRARY = { 0xe9bc8fa4, 0xead0, 0x4266, { 0xaf, 0xa7, 0x26, 0x55, 0x8e, 0xc8, 0xb9, 0xfc } };
+static const GUID GUID_CFG_SAVE_METHOD_FOR_NON_LIBRARY = { 0x82d15173, 0xbe92, 0x4fe9, { 0x9f, 0xc2, 0x33, 0xc8, 0x78, 0x30, 0xba, 0x6c } };
 static const GUID GUID_CFG_SAVE_MERGE_LRC_LINES = { 0x97229606, 0x8fd5, 0x441a, { 0xa6, 0x84, 0x9f, 0x3d, 0x87, 0xc8, 0x27, 0x18 } };
 // clang-format on
 
@@ -38,20 +40,25 @@ static cfg_auto_combo<SaveMethod, 2> cfg_save_method(GUID_CFG_SAVE_METHOD,
                                                      IDC_SAVE_METHOD_COMBO,
                                                      SaveMethod::LocalFile,
                                                      save_method_options);
+
+static cfg_auto_bool cfg_use_different_save_method_for_non_library(GUID_CFG_SAVE_USE_DIFFERENT_SAVE_METHOD_FOR_NON_LIBRARY, IDC_SAVE_USE_DIFFERENT_SAVE_METHOD_FOR_NON_LIBRARY, false);
+
+static cfg_auto_combo<SaveMethod, 2> cfg_save_method_for_non_library(GUID_CFG_SAVE_METHOD_FOR_NON_LIBRARY,
+                                                     IDC_SAVE_METHOD_FOR_NON_LIBRARY_COMBO,
+                                                     SaveMethod::LocalFile,
+                                                     save_method_options);
+
 static cfg_auto_bool cfg_save_merge_lrc_lines(GUID_CFG_SAVE_MERGE_LRC_LINES, IDC_SAVE_MERGE_EQUIVALENT_LRC_LINES, true);
 
 static cfg_auto_property* g_saving_auto_properties[] = {
     &cfg_save_auto_save_strategy,
     &cfg_save_method,
+    &cfg_use_different_save_method_for_non_library,
+    &cfg_save_method_for_non_library,
     &cfg_save_merge_lrc_lines,
 };
 
-AutoSaveStrategy preferences::saving::autosave_strategy()
-{
-    return cfg_save_auto_save_strategy.get_value();
-}
-
-GUID preferences::saving::save_source()
+static GUID save_source(SaveMethod method)
 {
     // NOTE: These were copied from the relevant lyric-source source file.
     //       It should not be a problem because these GUIDs must never change anyway (since it would
@@ -59,7 +66,6 @@ GUID preferences::saving::save_source()
     const GUID localfiles_src_guid = { 0x76d90970, 0x1c98, 0x4fe2, { 0x94, 0x4e, 0xac, 0xe4, 0x93, 0xf3, 0x8e, 0x85 } };
     const GUID id3tag_src_guid = { 0x3fb0f715, 0xa097, 0x493a, { 0x94, 0x4e, 0xdb, 0x48, 0x66, 0x8, 0x86, 0x78 } };
 
-    SaveMethod method = cfg_save_method.get_value();
     if(method == SaveMethod::LocalFile)
     {
         return localfiles_src_guid;
@@ -74,6 +80,26 @@ GUID preferences::saving::save_source()
         assert(false);
         return {};
     }
+}
+
+AutoSaveStrategy preferences::saving::autosave_strategy()
+{
+    return cfg_save_auto_save_strategy.get_value();
+}
+
+GUID preferences::saving::save_source()
+{
+    return save_source(cfg_save_method.get_value());
+}
+
+GUID preferences::saving::save_source_for_non_library()
+{
+    return save_source(cfg_save_method_for_non_library.get_value());
+}
+
+bool preferences::saving::use_different_save_method_for_non_library()
+{
+    return cfg_use_different_save_method_for_non_library.get_value();
 }
 
 bool preferences::saving::merge_equivalent_lrc_lines()
@@ -100,6 +126,8 @@ public:
     MSG_WM_INITDIALOG(OnInitDialog)
     COMMAND_HANDLER_EX(IDC_SAVE_METHOD_COMBO, CBN_SELCHANGE, OnUIChange)
     COMMAND_HANDLER_EX(IDC_SAVE_AUTOSAVE_TYPE, CBN_SELCHANGE, OnAutoSaveChange)
+    COMMAND_HANDLER_EX(IDC_SAVE_USE_DIFFERENT_SAVE_METHOD_FOR_NON_LIBRARY, BN_CLICKED, OnUIChange)
+    COMMAND_HANDLER_EX(IDC_SAVE_METHOD_FOR_NON_LIBRARY_COMBO, CBN_SELCHANGE, OnUIChange)
     COMMAND_HANDLER_EX(IDC_SAVE_MERGE_EQUIVALENT_LRC_LINES, BN_CLICKED, OnUIChange)
     END_MSG_MAP()
 

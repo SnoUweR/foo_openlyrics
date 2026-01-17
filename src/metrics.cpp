@@ -345,6 +345,7 @@ std::string collect_metrics(abort_callback& abort, bool is_dark_mode, size_t num
         // Search settings
         const std::string auto_edit_str = get_auto_edits();
         const std::string save_src_name = get_source_name(preferences::saving::save_source());
+        const std::string save_src_non_library_name = get_source_name(preferences::saving::save_source_for_non_library());
         cJSON_AddBoolToObject(json_cfg, "search_exclude_brackets", preferences::searching::exclude_trailing_brackets());
         cJSON_AddBoolToObject(json_cfg,
                               "is_skip_filter_default",
@@ -359,6 +360,8 @@ std::string collect_metrics(abort_callback& abort, bool is_dark_mode, size_t num
         cJSON_AddNumberToObject(json_cfg, "autosave_strategy", int(preferences::saving::autosave_strategy()));
         cJSON_AddStringToObject(json_cfg, "save_source", save_src_name.c_str());
         cJSON_AddNumberToObject(json_cfg, "save_directory_type", int(preferences::saving::raw::directory_class()));
+        cJSON_AddBoolToObject(json_cfg, "use_different_save_method_for_non_library", preferences::saving::use_different_save_method_for_non_library());
+        cJSON_AddStringToObject(json_cfg, "save_source_non_library", save_src_non_library_name.c_str());
         cJSON_AddBoolToObject(json_cfg, "merge_lrc_lines_on_save", preferences::saving::merge_equivalent_lrc_lines());
 
         // Display settings
