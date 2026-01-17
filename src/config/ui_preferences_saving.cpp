@@ -126,7 +126,7 @@ public:
     MSG_WM_INITDIALOG(OnInitDialog)
     COMMAND_HANDLER_EX(IDC_SAVE_METHOD_COMBO, CBN_SELCHANGE, OnUIChange)
     COMMAND_HANDLER_EX(IDC_SAVE_AUTOSAVE_TYPE, CBN_SELCHANGE, OnAutoSaveChange)
-    COMMAND_HANDLER_EX(IDC_SAVE_USE_DIFFERENT_SAVE_METHOD_FOR_NON_LIBRARY, BN_CLICKED, OnUIChange)
+    COMMAND_HANDLER_EX(IDC_SAVE_USE_DIFFERENT_SAVE_METHOD_FOR_NON_LIBRARY, BN_CLICKED, OnUseDifferentSaveMethodForNonLibraryChange)
     COMMAND_HANDLER_EX(IDC_SAVE_METHOD_FOR_NON_LIBRARY_COMBO, CBN_SELCHANGE, OnUIChange)
     COMMAND_HANDLER_EX(IDC_SAVE_MERGE_EQUIVALENT_LRC_LINES, BN_CLICKED, OnUIChange)
     END_MSG_MAP()
@@ -135,6 +135,8 @@ private:
     BOOL OnInitDialog(CWindow, LPARAM);
     void OnUIChange(UINT, int, CWindow);
     void OnAutoSaveChange(UINT, int, CWindow);
+    void OnUseDifferentSaveMethodForNonLibraryChange(UINT, int, CWindow);
+    void RefreshSaveMethodForNonLibraryControlState();
 
     AutoSaveStrategy m_last_select_autosave_strategy;
     fb2k::CCoreDarkModeHooks m_dark;
@@ -146,6 +148,9 @@ BOOL PreferencesSaving::OnInitDialog(CWindow, LPARAM)
 
     init_auto_preferences();
     m_last_select_autosave_strategy = cfg_save_auto_save_strategy.get_value();
+
+    RefreshSaveMethodForNonLibraryControlState();
+
     return FALSE;
 }
 
@@ -201,6 +206,22 @@ void PreferencesSaving::OnAutoSaveChange(UINT, int, CWindow)
     }
 
     on_ui_interaction();
+}
+
+void PreferencesSaving::OnUseDifferentSaveMethodForNonLibraryChange(UINT, int, CWindow)
+{
+    RefreshSaveMethodForNonLibraryControlState();
+    on_ui_interaction();
+}
+
+void PreferencesSaving::RefreshSaveMethodForNonLibraryControlState()
+{
+    LRESULT use_different_save_method = SendDlgItemMessage(IDC_SAVE_USE_DIFFERENT_SAVE_METHOD_FOR_NON_LIBRARY, BM_GETCHECK, 0, 0);
+
+    CWindow save_method_ctrl = GetDlgItem(IDC_SAVE_METHOD_FOR_NON_LIBRARY_COMBO);
+    assert(save_method_ctrl != nullptr);
+
+    save_method_ctrl.EnableWindow(use_different_save_method == BST_CHECKED);
 }
 
 class PreferencesSavingImpl : public preferences_page_impl<PreferencesSaving>
