@@ -72,7 +72,7 @@ bool io::save_lyrics(metadb_handle_ptr track,
     core_api::ensure_main_thread();
 
     GUID source_guid;
-    if (preferences::saving::use_different_save_method_for_non_library && !track_is_in_library(track))
+    if(preferences::saving::use_different_save_method_for_non_library() && !track_is_in_library(track))
     {
         LOG_INFO("Using non-library save source for track not in library");
         source_guid = preferences::saving::save_source_for_non_library();
